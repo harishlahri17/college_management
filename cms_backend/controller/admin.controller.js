@@ -1,30 +1,43 @@
 const AdminDetails = require("../model/Admin/AdminDetails");// import model
-const fs = require("fs");
+// const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken");
+const cloudinary = require("../config/cloudinary");
 
 const createAdmin = async (req, res) => {
-    // try {
-    //     const adminData = new AdminDetails(req.body);
 
-    //     if(!adminData){
-    //         return res.status(404).json({msg: "Admin data not found from body"});
-    //     }
-    //     const saveData = await adminData.save();
-    //     res.status(200).json(saveData);
-
-    // } catch (error) {
-    //     res.status(500).json({error: error});
-    // }
-
-    
     try {
         if (!req.file) {
             return res.status(400).json({ Success: false, Message: "Profile image is required" });
         }
         const { employeeId, firstName, middleName, lastName, email,
             phoneNumber, gender, profile, password } = req.body;
+
+        // Check existing admin by email or employeeId
+        const existingAdmin = await AdminDetails.findOne({
+            $or: [
+                { email: email },
+                { employeeId: employeeId }
+            ]
+        });
+
+        if (existingAdmin) {
+
+            if (existingAdmin.email === email) {
+                return res.status(400).json({
+                    Success: false,
+                    Message: "Admin already added with this email"
+                });
+            }
+
+            if (existingAdmin.employeeId == employeeId) {
+                return res.status(400).json({
+                    Success: false,
+                    Message: "Admin already added with this Employee ID"
+                });
+            }
+        }
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -37,7 +50,8 @@ const createAdmin = async (req, res) => {
             phoneNumber: phoneNumber,
             gender: gender,
             password: hashedPassword,
-            profile: req.file.filename, // save file name in DB
+            profile: req.file.path, // save url in db
+            public_id: req.file.filename,  // Cloudinary public id 
         });
 
         const saveData = await adminData.save();
@@ -51,7 +65,7 @@ const createAdmin = async (req, res) => {
             Success: true,
             Message: "Admin added successfully",
             Data: saveData,
-            token:token,
+            token: token,
         });
     } catch (error) {
         res.status(500).json({ Success: false, Message: error.message });
@@ -77,11 +91,18 @@ const adminList = async (req, res) => {
 const deleteAdmin = async (req, res) => {
     try {
         const { id } = req.params;
-        const deleted = await AdminDetails.findByIdAndDelete(id);
+        const admin = await AdminDetails.findByIdAnd(id);
 
-        if (!deleted) {
+        // Delete image from Cloudinary
+        if (admin.public_id) {
+            await cloudinary.uploader.destroy(admin.public_id);
+        }
+
+        if (!admin) {
             return res.status(404).json({ Success: false, Message: "Admin not found!" });
         }
+
+        await AdminDetails.findByIdAndDelete(id);
 
         res.status(200).json({ Success: true, Message: "Admin deleted successfully" });
     } catch (error) {
@@ -119,30 +140,43 @@ const updateAdmin = async (req, res) => {
         if (!admin) {
             return res.status(404).json({ Success: false, Message: "Admin not found" });
         }
-
+        const { firstName, middleName, lastName, employeeId, email, phoneNumber, gender } = req.body;
         let updateData = {
-            firstName: req.body.firstName,
-            middleName: req.body.middleName,
-            lastName: req.body.lastName,
-            employeeId: req.body.employeeId,
-            email: req.body.email,
-            phoneNumber: req.body.phoneNumber,
-            gender: req.body.gender,
+            firstName: firstName,
+            middleName: middleName,
+            lastName: lastName,
+            employeeId: employeeId,
+            email: email,
+            phoneNumber: phoneNumber,
+            gender: gender,
         };
 
+        // if (req.file) {
+        //     if (admin.profile) {
+        //         const oldPath = path.join(__dirname, "../../media/Admin", admin.profile);
+        //         if (fs.existsSync(oldPath)) {
+        //             fs.unlinkSync(oldPath);
+        //         }
+        //     }
+        //     updateData.profile = req.file.filename;
+        // }
+
         if (req.file) {
-            if (admin.profile) {
-                const oldPath = path.join(__dirname, "../../media/Admin", admin.profile);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
-                }
+            // delete old image 
+            if (admin.public_id) {
+                await cloudinary.uploader.destroy(admin.public_id);
             }
-            updateData.profile = req.file.filename;
+            updateData.profile = req.file.path;
+            updateData.public_id = req.file.filename;
         }
 
         const updatedAdmin = await AdminDetails.findByIdAndUpdate(id, updateData, { new: true });
 
-        res.status(200).json({ Success: true, Message: "Admin updated successfully", admin: updatedAdmin });
+        res.status(200).json({
+            Success: true,
+            Message: "Admin updated successfully",
+            admin: updatedAdmin
+        });
     } catch (error) {
         console.error("Error updating admin:", error);
         res.status(500).json({ Success: false, Message: error.message });
@@ -150,4 +184,42 @@ const updateAdmin = async (req, res) => {
 };
 
 
-module.exports = { createAdmin, adminList, deleteAdmin, getAdminById, updateAdmin };
+const deleteAdminImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const admin = await AdminDetails.findById(id);
+
+    if (!admin) {
+      return res.status(404).json({
+        Success: false,
+        Message: "Admin not found"
+      });
+    }
+
+    if (admin.public_id) {
+      await cloudinary.uploader.destroy(
+        admin.public_id
+      );
+    }
+
+    admin.profile = "";
+    admin.public_id = "";
+
+    await admin.save();
+
+    res.status(200).json({
+      Success: true,
+      Message: "Profile image deleted successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      Success: false,
+      Message: error.message
+    });
+  }
+};
+
+
+module.exports = { createAdmin, adminList, deleteAdmin, getAdminById, updateAdmin , deleteAdminImage};

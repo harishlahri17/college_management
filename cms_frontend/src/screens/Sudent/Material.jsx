@@ -44,6 +44,19 @@ export default function Material() {
         fetchMaterials();
     }, [selectedSubject, token]);
 
+    const downloadPDF = async (url, filename) => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="w-[85%] mx-auto mt-10 flex justify-center items-start flex-col mb-10">
 
@@ -79,13 +92,18 @@ export default function Material() {
                                     </span>
                                 </p>
                                 <p className="text-base font-normal mt-1">
-                                    ({mat.material})
+                                    ({mat.originalName})
                                 </p>
                             </div>
 
-                            <a href={`http://localhost:8000/media/material/${mat.material}`} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                                <button className=' text-2xl hover:text-black'><FaDownload /></button>
-                            </a>
+                            <button onClick={() =>
+                                downloadPDF(
+                                    mat.material,
+                                    mat.originalName
+                                )
+                            } target="_blank" rel="noopener noreferrer" className="text-blue-500 text-2xl hover:text-black">
+                                <FaDownload />
+                            </button>
 
                         </div>
                     ))}

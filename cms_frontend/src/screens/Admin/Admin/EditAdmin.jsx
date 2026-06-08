@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BaseUrl } from "../../../axiosInstance";
 import { toast } from "react-toastify";
+import { RiDeleteBin6Line } from "react-icons/ri";
 
 export default function EditAdmin({ adminId }) {
   const [formData, setFormData] = useState({
@@ -14,8 +15,7 @@ export default function EditAdmin({ adminId }) {
     profile: null, // file
   });
 
-  const [preview, setPreview] = useState(null);// review image 
-
+  const [preview, setPreview] = useState(null);// preview image 
 
   // Fetch selected admin data
   useEffect(() => {
@@ -36,7 +36,8 @@ export default function EditAdmin({ adminId }) {
             gender: admin.gender || "",
             profile: null, // reset file input
           });
-          setPreview(`http://localhost:8000/media/admin/${admin.profile}`);
+          // setPreview(`http://localhost:8000/media/admin/${admin.profile}`);
+          setPreview(admin.profile);
         }
       } catch (error) {
         console.error("Error fetching admin:", error);
@@ -87,6 +88,29 @@ export default function EditAdmin({ adminId }) {
     } catch (error) {
       console.error("Error updating admin:", error);
       toast.error("Something went wrong");
+    }
+  };
+
+  const deleteProfileImage = async () => {
+    try {
+      const { data } = await BaseUrl.delete(`/admin/delete-admin-image/${adminId}`);
+
+      if (data.Success) {
+        toast.success(data.Message);
+
+        setPreview(null);
+
+        setFormData({
+          ...formData,
+          profile: null,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        error?.response?.data?.Message ||
+        "Failed to delete image"
+      );
     }
   };
 
@@ -197,14 +221,23 @@ export default function EditAdmin({ adminId }) {
           htmlFor="file"
           className="px-2 bg-blue-50 py-3 rounded-sm w-full flex justify-center items-center cursor-pointer"
         >
-          Upload
+          Upload new image
         </label>
         <input hidden type="file" id="file" accept="image/*" onChange={handleFileChange} />
       </div>
 
       {preview && (
         <div className="w-full flex justify-center items-center">
-          <img src={preview} alt="admin" className="h-36" />
+          <div className="relative">
+            <img src={preview} alt="admin" className="h-36" />
+            <button
+              type="button"
+              onClick={deleteProfileImage}
+              className="absolute -top-2 -right-2 bg-red-500 text-white h-8 w-8 flex items-center justify-center"
+            >
+             <RiDeleteBin6Line />
+            </button>
+          </div>
         </div>
       )}
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import { FaDownload } from "react-icons/fa";
 import { BaseUrl } from "../../axiosInstance";
+import { toast } from 'react-toastify';
 
 export default function Timetable() {
   const [selected, setSelected] = useState("add");
@@ -11,14 +13,14 @@ export default function Timetable() {
   const [preview, setPreview] = useState(null);
   const [timetables, setTimetables] = useState([]);
 
-  // ✅ Fetch branches
+  // Fetch branches
   useEffect(() => {
     BaseUrl.get("/admin/branch-list")
       .then((res) => setBranches(res.data.list))
       .catch((err) => console.error(err));
   }, []);
 
-  // ✅ Fetch timetables
+  // Fetch timetables
   const fetchTimetables = () => {
     BaseUrl.get("/faculty/timetable-list")
       .then((res) => setTimetables(res.data.timetables))
@@ -29,14 +31,14 @@ export default function Timetable() {
     fetchTimetables();
   }, []);
 
-  // ✅ Handle file input
+  // Handle file input
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFile(file);
     setPreview(URL.createObjectURL(file));
   };
 
-  // ✅ Upload timetable
+  // Upload timetable
   const handleUpload = async () => {
     if (!branchId || !semester || !file) {
       alert("⚠️ Please fill all fields");
@@ -52,7 +54,7 @@ export default function Timetable() {
       await BaseUrl.post("/faculty/add-timetable", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("✅ Timetable uploaded");
+      toast.success(" Timetable uploaded");
       setBranchId("");
       setSemester("");
       setFile(null);
@@ -60,19 +62,43 @@ export default function Timetable() {
       fetchTimetables();
     } catch (err) {
       console.error(err);
-      alert("❌ Upload failed");
+      toast.error("Upload failed"||err);
     }
   };
 
-  // ✅ Delete timetable
+  //  Delete timetable
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this timetable?")) return;
+
     try {
-      await BaseUrl.delete(`/delete-timetable/${id}`);
-      fetchTimetables();
+      const { data } = await BaseUrl.delete(
+        `/faculty/delete-timetable/${id}`
+      );
+
+      if (data.success) {
+        toast.success("Timetable deleted successfully");
+
+        setTimetables((prev) =>
+          prev.filter((item) => item._id !== id)
+        );
+      }
     } catch (err) {
       console.error(err);
+      toast.error("Delete failed");
     }
+  };
+
+  const downloadPDF = async (url, filename) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -176,18 +202,24 @@ export default function Timetable() {
                     {tt.branch?.branch} - {tt.semester} Semester
                   </p>
                   <a
-                    href={`http://localhost:8000/media/timetable/${tt.timetable}`}
+                    href={tt.timetable}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 underline"
                   >
                     View doc
                   </a>
-                  {/* <img
-                    src={`http://localhost:8000/media/timetables/${tt.timetable}`}
-                    alt="Timetable"
-                    className="w-40 mt-2 border"
-                  /> */}
+                  <button
+                    onClick={() =>
+                      downloadPDF(
+                        tt.material,
+                        tt.originalName
+                      )
+                    }
+                    className="ml-3 text-blue-600 underline"
+                  >
+                    <span className="flex items-center gap-2 "> Download Image<FaDownload /></span>
+                  </button>
                 </div>
                 <button
                   className="text-2xl hover:text-red-500"

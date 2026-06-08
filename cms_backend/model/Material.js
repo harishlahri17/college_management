@@ -18,6 +18,12 @@ const materialSchema = new mongoose.Schema({
     material: {
         type: String,
         required: true,
+    },
+    public_id: {
+        type: String,
+    },
+    originalName: {
+        type: String,
     }
 }, { timestamps: true });
 

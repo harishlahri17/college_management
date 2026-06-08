@@ -49,10 +49,9 @@ export default function Timetable() {
             </div>
             <img
                 className="mt-8 rounded-lg shadow-md w-[70%] mx-auto"
-                src={`http://localhost:8000/media/timetable/${timetable.timetable}`}
+                src={timetable.timetable}
                 alt="timetable"
             />
-            <p className="mt-10">No Timetable Available At The Moment!</p>
 
         </div>
     )

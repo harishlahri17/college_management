@@ -69,8 +69,8 @@ export default function Profile() {
   return (
     <div className="w-[85%] mx-auto my-8 flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
               <img
-          src={`http://localhost:8000/media/admin/${admin.profile}`}
-          alt="student profile"
+          src={admin.profile}
+          alt="admin profile"
           className="h-[200px] w-[200px] object-cover rounded-lg shadow-md mb-4 md:mb-0 md:order-2"
         />
 

@@ -27,7 +27,7 @@ export default function AdminList({ onEdit }) {
     if (!window.confirm("Are you sure you want to delete this admin?")) return;
 
     try {
-      const { data } = await BaseUrl.delete(`/admin/delete-admin/${id}`); // ✅ fixed
+      const { data } = await BaseUrl.delete(`/admin/delete-admin/${id}`); //  fixed
       if (data?.Success) {
         toast.success(data.Message);
         setAdminList(prev => prev.filter(admin => admin._id !== id));
@@ -77,7 +77,7 @@ export default function AdminList({ onEdit }) {
                 <td className="px-6 py-4">{index + 1}</td>
                 <td className="px-6 py-4">
                   <img
-                    src={`http://localhost:8000/media/admin/${admin.profile}`} // ✅ serve image from backend
+                    src={admin.profile} // serve image from backend cloudinary
                     alt={admin.firstName}
                     className="h-12 w-12 rounded-full object-cover"
                   />

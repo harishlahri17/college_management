@@ -40,7 +40,11 @@ const studentDetails = new mongoose.Schema({
   },
   profile: {
     type: String,
-    required: true,
+    // required: true,
+    default: ""
+  },
+    public_id: {
+    type: String,
   },
   password: { 
     type: String, 

@@ -5,7 +5,7 @@ const route = express.Router();
 const { uploadAdmin, uploadStudent, uploadFaculty } = require("../../controller/fileHandle.controller");
 
 // Import admin Controller
-const {createAdmin, adminList, deleteAdmin, getAdminById, updateAdmin} = require("../../controller/admin.controller");
+const {createAdmin, adminList, deleteAdmin, getAdminById, updateAdmin, deleteAdminImage} = require("../../controller/admin.controller");
 
 // Insert Admin API
 route.post("/add-admin",uploadAdmin.single("profile"),createAdmin);
@@ -20,11 +20,13 @@ route.delete("/delete-admin/:id",deleteAdmin);
 route.get("/admin/:id", getAdminById);
 // update admin API
 route.put("/update-admin/:id", uploadAdmin.single("profile"), updateAdmin);
+// delete admin image
+route.delete("/delete-admin-image/:id", deleteAdminImage);
 
 
 
 // Import faculty Controller
-const { createFaculty, facultyList, deleteFaculty, getFacultyById, updateFaculty } = require("../../controller/faculty.controller");
+const { createFaculty, facultyList, deleteFaculty, getFacultyById, updateFaculty, deleteFacultyImage } = require("../../controller/faculty.controller");
 
 // add faculty API
 route.post("/add-faculty",uploadFaculty.single("profile"),createFaculty);
@@ -41,11 +43,14 @@ route.get("/single-faculty/:id", getFacultyById);
 // update faculty API
 route.put("/update-faculty/:id",uploadFaculty.single("profile"), updateFaculty);
 
+// delete faculty image 
+route.delete("/delete-faculty-image/:id", deleteFacultyImage);
+
 
 
 
 // Import Student controller 
-const {createStudent, studentList, deleteStudent, updateStudent, getStudentById, } = require("../../controller/student.controller");
+const {createStudent, studentList, deleteStudent, updateStudent, getStudentById, deleteStudentImage, } = require("../../controller/student.controller");
 
 // add student API 
 route.post("/add-student",uploadStudent.single("profile"), createStudent);
@@ -61,6 +66,7 @@ route.get("/single-student/:id", getStudentById);
 
 // update student
 route.put("/update-student/:id", uploadStudent.single("profile") , updateStudent);
+route.delete("/delete-student-image/:id", deleteStudentImage);
 
 module.exports = route;
 

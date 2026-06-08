@@ -201,7 +201,7 @@ export default function StudentInfo() {
               </div>
             </div>
             <img
-              src={`http://localhost:8000/media/student/${student.profile}`}
+              src={student.profile}
               alt="student profile"
               className="h-[200px] w-[200px] object-cover rounded-lg shadow-md"
             />

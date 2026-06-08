@@ -128,7 +128,9 @@
 import React, { useState, useEffect } from "react";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { FiUpload } from "react-icons/fi";
+import { FaDownload } from "react-icons/fa";
 import { BaseUrl } from "../../axiosInstance";
+import { toast } from 'react-toastify';
 
 export default function Material() {
   const [selected, setSelected] = useState("add");
@@ -142,21 +144,21 @@ export default function Material() {
     material: null,
   });
 
-  // ✅ Fetch Branches
+  //  Fetch Branches
   useEffect(() => {
     BaseUrl.get("/admin/branch-list")
       .then((res) => setBranches(res.data.list))
       .catch((err) => console.error(err));
   }, []);
 
-  // ✅ Fetch Subjects
+  //  Fetch Subjects
   useEffect(() => {
     BaseUrl.get("/admin/subject-list")
       .then((res) => setSubjects(res.data.list))
       .catch((err) => console.error(err));
   }, []);
 
-  // ✅ Fetch Materials
+  //  Fetch Materials
   const fetchMaterials = () => {
     BaseUrl.get("/faculty/materials")
       .then((res) => setMaterials(res.data.materials))
@@ -167,12 +169,12 @@ export default function Material() {
     fetchMaterials();
   }, []);
 
-  // ✅ Handle File Change
+  //  Handle File Change
   const handleFileChange = (e) => {
     setFormData({ ...formData, material: e.target.files[0] });
   };
 
-  // ✅ Handle Upload
+  //  Handle Upload
   const handleUpload = async () => {
     if (!formData.branch || !formData.semester || !formData.subject || !formData.material) {
       alert("All fields are required!");
@@ -189,22 +191,37 @@ export default function Material() {
       await BaseUrl.post("/faculty/add-material", uploadData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Material uploaded successfully!");
+      toast.success("Material uploaded successfully!");
       setFormData({ branch: "", semester: "", subject: "", material: null });
       fetchMaterials();
     } catch (err) {
-      console.error(err);
+      toast.error("failed to upload Material"||err);
     }
   };
 
-  // ✅ Delete Material
+  // Delete Material
   const handleDelete = async (id) => {
     try {
       await BaseUrl.delete(`/faculty/delete-material/${id}`);
+      toast.success("Material Deleted suceesfully !")
       fetchMaterials();
     } catch (err) {
       console.error(err);
+      toast.error(err);
     }
+  };
+
+  const downloadPDF = async (url, filename) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -306,14 +323,26 @@ export default function Material() {
                     <strong>Branch:</strong> {m.branch?.branch} | <strong>Semester:</strong> {m.semester} |{" "}
                     <strong>Subject:</strong> {m.subject?.subject}
                   </p>
-                  <a
-                    href={`http://localhost:8000/media/material/${m.material}`}
+                  {/* <a
+                    href={m.material}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 underline"
                   >
                     View PDF
-                  </a>
+                  </a> */}
+
+                  <button
+                    onClick={() =>
+                      downloadPDF(
+                        m.material,
+                        m.originalName
+                      )
+                    }
+                    className="ml-3 text-blue-600 underline"
+                  >
+                    <span className="flex items-center gap-2 "> Download PDF<FaDownload /></span>
+                  </button>
                 </div>
                 <button className="text-2xl hover:text-red-500" onClick={() => handleDelete(m._id)}>
                   <RiDeleteBin6Line />

@@ -1,4 +1,5 @@
 const Timetable = require("../../model/Timetable");
+const Cloudinary = require("../../config/cloudinary");
 
 
 // Add timetable
@@ -11,7 +12,9 @@ const addTimetable = async (req, res) => {
     const timetable = await Timetable.create({
       branch,
       semester,
-      timetable: req.file.filename
+      timetable: req.file.path,
+      public_id: req.file.filename,
+      originalName: req.file.originalname,
     });
 
     res.json({ success: true, timetable });
@@ -36,11 +39,33 @@ const getTimetables = async (req, res) => {
 // Delete timetable
 const deleteTimetable = async (req, res) => {
   try {
+
+    const timet = await Timetable.findById(req.params.id);
+
+    if (!timet) {
+      return res.status(404).json({
+        success: false,
+        message: "Timetable not found"
+      });
+    }
+
+    if (timet.public_id) {
+      await Cloudinary.uploader.destroy(timet.public_id);
+    }
+
     await Timetable.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Timetable deleted" });
+
+    res.status(200).json({
+      success: true,
+      message: "Timetable deleted successfully"
+    });
+
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 };
 
-module.exports = {addTimetable, getTimetables, deleteTimetable};
+module.exports = { addTimetable, getTimetables, deleteTimetable };

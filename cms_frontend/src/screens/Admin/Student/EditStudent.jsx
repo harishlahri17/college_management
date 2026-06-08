@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { BaseUrl } from '../../../axiosInstance';
 import { toast } from 'react-toastify';
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { FiUpload } from "react-icons/fi";
 
 export default function EditStudent({ studentId }) {
 
@@ -41,7 +43,7 @@ export default function EditStudent({ studentId }) {
                         semester: student.semester || "",
                         profile: null, // reset file input
                     });
-                    setPreview(`http://localhost:8000/media/student/${student.profile}`);
+                    setPreview(student.profile);
                 }
             } catch (error) {
                 console.error("Error fetching faculty:", error);
@@ -108,6 +110,29 @@ export default function EditStudent({ studentId }) {
         } catch (error) {
             console.error("Error updating admin:", error);
             toast.error("Something went wrong");
+        }
+    };
+
+    const deleteProfileImage = async () => {
+        try {
+            const { data } = await BaseUrl.delete(`/admin/delete-student-image/${studentId}`);
+
+            if (data.Success) {
+                toast.success(data.Message);
+
+                setPreview(null);
+
+                setFormData({
+                    ...formData,
+                    profile: null,
+                });
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error(
+                error?.response?.data?.Message ||
+                "Failed to delete image"
+            );
         }
     };
 
@@ -249,9 +274,9 @@ export default function EditStudent({ studentId }) {
                     htmlFor="file"
                     className="px-2 bg-blue-50 py-3 rounded-sm text-base w-full flex justify-center items-center cursor-pointer"
                 >
-                    Upload
+                    Upload new profile
                     <span className="ml-2">
-                        file Upload
+                        <FiUpload/>
                     </span>
                 </label>
                 <input
@@ -266,14 +291,24 @@ export default function EditStudent({ studentId }) {
 
             {preview && (
                 <div className="w-full flex justify-center items-center">
-                    <img src={preview} alt="Faculty" className="h-36" />
+                    <div className="relative">
+                        <img src={preview} alt="admin" className="h-36" />
+                        <button
+                            type="button"
+                            onClick={deleteProfileImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white h-8 w-8 flex items-center justify-center"
+                        >
+                            <RiDeleteBin6Line />
+                        </button>
+                    </div>
                 </div>
             )}
+
             <button
                 type="submit"
                 className="bg-blue-500 px-6 py-3 rounded-sm mb-6 text-white"
             >
-                Add New Student
+                Update Student
             </button>
         </form>
     )

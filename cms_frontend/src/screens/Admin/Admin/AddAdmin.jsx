@@ -72,8 +72,10 @@ export default function AddAdmin() {
         setPreview(null);
       }
     } catch (error) {
-      console.error("Error on adding admin:", error);
-      toast.error(error || "Something went wrong ");
+      // toast.error(error || "Something went wrong ");
+      toast.error(
+        error?.response?.data?.Message || "Something went wrong"
+      );
     }
   }
 

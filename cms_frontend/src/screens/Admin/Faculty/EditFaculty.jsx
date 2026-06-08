@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { BaseUrl } from '../../../axiosInstance';
 import { toast } from 'react-toastify';
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { FiUpload } from "react-icons/fi";
 
 export default function EditFaculty({ facultyId }) {
 
@@ -43,7 +45,7 @@ export default function EditFaculty({ facultyId }) {
                         post: faculty.post || "",
                         profile: null, // reset file input
                     });
-                    setPreview(`http://localhost:8000/media/faculty/${faculty.profile}`);
+                    setPreview(faculty.profile);
                 }
             } catch (error) {
                 console.error("Error fetching faculty:", error);
@@ -111,6 +113,29 @@ export default function EditFaculty({ facultyId }) {
         } catch (error) {
             console.error("Error updating admin:", error);
             toast.error("Something went wrong");
+        }
+    };
+
+    const deleteProfileImage = async () => {
+        try {
+            const { data } = await BaseUrl.delete(`/admin/delete-faculty-image/${facultyId}`);
+
+            if (data.Success) {
+                toast.success(data.Message);
+
+                setPreview(null);
+
+                setFormData({
+                    ...formData,
+                    profile: null,
+                });
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error(
+                error?.response?.data?.Message ||
+                "Failed to delete image"
+            );
         }
     };
 
@@ -254,9 +279,9 @@ export default function EditFaculty({ facultyId }) {
                         htmlFor="file"
                         className="px-2 bg-blue-50 py-3 rounded-sm text-base w-full flex justify-center items-center cursor-pointer"
                     >
-                        Upload
+                        Upload new profile
                         <span className="ml-2">
-                            file upload
+                            <FiUpload />
                         </span>
                     </label>
                     <input
@@ -272,7 +297,16 @@ export default function EditFaculty({ facultyId }) {
 
             {preview && (
                 <div className="w-full flex justify-center items-center">
-                    <img src={preview} alt="Faculty" className="h-36" />
+                    <div className="relative">
+                        <img src={preview} alt="admin" className="h-36" />
+                        <button
+                            type="button"
+                            onClick={deleteProfileImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white h-8 w-8 flex items-center justify-center"
+                        >
+                            <RiDeleteBin6Line />
+                        </button>
+                    </div>
                 </div>
             )}
 

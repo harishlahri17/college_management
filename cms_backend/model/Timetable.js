@@ -8,12 +8,18 @@ const timetable = new mongoose.Schema({
     },
     semester: {
         type: Number,
-        required:true,
+        required: true,
     },
     timetable: {
         type: String,
-        required:true,
+        required: true,
+    },
+    public_id: {
+        type: String,
+    },
+    originalName: {
+        type: String,
     }
-},{timestamps:true});
+}, { timestamps: true });
 
-module.exports = mongoose.model("timetable",timetable);
+module.exports = mongoose.model("timetable", timetable);

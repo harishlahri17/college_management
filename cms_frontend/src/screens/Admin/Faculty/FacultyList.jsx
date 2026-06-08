@@ -84,7 +84,7 @@ export default function FacultyList({ onEdit }) {
                                 <td className="px-6 py-4">{index + 1}</td>
                                 <td className="px-6 py-4">
                                     <img
-                                        src={`http://localhost:8000/media/faculty/${faculty.profile}`} //  serve image from backend
+                                        src={faculty.profile} //  serve image from backend
                                         alt={faculty.firstName}
                                         className="h-12 w-12 rounded-full object-cover"
                                     />
